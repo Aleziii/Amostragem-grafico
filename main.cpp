@@ -7,8 +7,6 @@
 //#include <unistd.h>
 #define PI 3.14159265359
 
-
-
 using namespace std;
 
 string converter(int n, int q_casas){
@@ -50,12 +48,15 @@ int main() {
 		/*Definicao dos vetores*/
 		string intervalo_q[nIntervalos];
 		float xq[nIntervalos], xeq[nIntervalos], amostragem[nIntervalos];
-		float nivel_e_coddecimal[nIntervalos][2];
+		float nivel_e_coddecimal[nIntervalos][2], intervalos[nIntervalos][2];
 		
 		/*Calculo da amostragem*/
 		cout<<"\n\n 1 - sin(t) \t 2 - cos(t)";
 		cout<<"\nDigite o tipo de funcao que deseja calcular:\n";
 		cin>>d;
+		ofstream func("funcao.txt");
+		func<<"#coluna 1 = t\n\n";
+		func<<"#coluna 2 = x[t]\n";
 		switch(d){
 			system("cls");
 			case 1:
@@ -63,14 +64,22 @@ int main() {
 				for(int t = 0; t < nIntervalos; t++){
 					amostragem[t] = roundf((amplitude*(sin(2*PI*frequencia*t))*10000))/10000;
 				}
+			    for(float a=0; a < nIntervalos; a = a + 0.01){
+	    			func<<a<<"\t"<<amplitude*sin(2*PI*frequencia*a)<<"\n";
+				}
 			break;
 			case 2:
 				cout<<"Funcao cos(t)\n\n";
 				for(int t = 0; t < nIntervalos; t++){
 					amostragem[t] = roundf((amplitude*(cos(2*PI*frequencia*t))*10000))/10000;
 				}
+				for(float a=0; a < nIntervalos; a = a + 0.01){
+	    			func<<a<<"\t"<<amplitude*cos(2*PI*frequencia*a)<<"\n";
+				}
 			break;	
 		}
+		
+		func.close();
 		
 		/*Calculo do intervalo do quantizador*/
 		intervaloQuantizador = (amplitude - (-amplitude))/nIntervalos;
@@ -81,6 +90,9 @@ int main() {
 			stream1 << fixed << setprecision(2) << temporario;
 			stream2 << fixed << setprecision(2) << (temporario-intervaloQuantizador);
 			intervalo_q[i] = stream1.str() + " a " + stream2.str();
+			
+			intervalos[i][0] = round(temporario*100)/100; //Intervalo inicial
+			intervalos[i][1] = round((temporario-intervaloQuantizador)*100)/100; //Intervalo final
 			
 			//Limpa a string
 			stream1.str("");
@@ -145,20 +157,14 @@ int main() {
 	    out<<"#coluna 4 = erro\n";
 	    out<<"#coluna 5 = nivel de quantizacao\n";
 	    for(int i = 0; i < nIntervalos; i++){
-	    	out<<i<<"\t"<<amostragem[i]<<"\t"<<xq[i]<<"\t"<<xeq[i]<<"\t"<<nivel_e_coddecimal[nIntervalos-1-i][1]<<"\n";
+	    	out<<i<<"\t"<<amostragem[i]<<"\t"<<xq[i]<<"\t"<<xeq[i]<<
+			"\t"<<nivel_e_coddecimal[nIntervalos-1-i][1]<<"\n";
 		}
 		out.close();
 		
-		ofstream func("funcao.txt");
-		func<<"#coluna 1 = amplitude\n";
-	    func<<"#coluna 2 = frequencia\n\n";
-	    
-	    func<<amplitude<<"\t"<<frequencia;
-	    func.close();
-		
 		system("cd C:\\Program Files\\gnuplot\\bin");
 		//system("start wgnuplot -p plot2.plt");
-		system("start wgnuplot -p plot_wave.plt");
+		system("start wgnuplot -p plot_grafico.plt");
 		cout<<"\nDigite 's' para efetuar um novo calculo:\n";
 		cin>>l;
 	}while(l=='s' || l=='S');
